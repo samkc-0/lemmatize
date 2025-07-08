@@ -3,7 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 COPY . /app
 
-RUN pip install fastapi uvicorn spacy && \
+RUN pip install --no-cache-dir -r requirements.txt && \
     python -m spacy download it_core_news_sm
 
 EXPOSE 8000
