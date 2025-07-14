@@ -21,8 +21,8 @@ class Lemma(BaseModel):
 MAX_INPUT_LENGTH = 140
 
 
-@app.post("/italian")
-def lemmatize(input: TextIn):
+@app.post("/lemmatize/{language}")
+def lemmatize(language: str, input: TextIn):
     if len(input.text) > MAX_INPUT_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -35,10 +35,10 @@ def lemmatize(input: TextIn):
             status_code=status.HTTP_400_BAD_REQUEST, detail="unable to detect language"
         )
 
-    if lang != "it":
+    if lang != language:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"input must be in italian (detected: {lang})",
+            detail=f"input must be in {language} (detected: {lang})",
         )
     doc = nlp(input.text)
     return [

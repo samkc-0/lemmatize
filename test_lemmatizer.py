@@ -13,7 +13,7 @@ def user_input() -> str:
 
 
 def test_lemmatization(user_input: str):
-    res = client.post("/italian", json={"text": user_input})
+    res = client.post("/lemmatize/it", json={"text": user_input})
     assert res.status_code == status.HTTP_200_OK
     lemmas = [
         {"lemma": "avere", "pos": "AUX", "language": "it"},
@@ -40,11 +40,11 @@ def test_lemmatization(user_input: str):
 
 def test_input_text_too_long_should_fail(user_input: str):
     too_long = user_input * 20
-    res = client.post("/italian", json={"text": too_long})
+    res = client.post("/lemmatize/it", json={"text": too_long})
     assert res.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
 
 
 def test_unsupported_language():
     spanish = "Pero no he podido yo contravenir al orden de naturaleza; que en ella cada cosa engendra su semejante."
-    res = client.post("/italian", json={"text": spanish})
+    res = client.post("/lemmatize/it", json={"text": spanish})
     assert res.status_code == status.HTTP_400_BAD_REQUEST
