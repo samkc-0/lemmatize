@@ -1,59 +1,6 @@
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel, create_engine
-from sqlmodel.pool import StaticPool
-import pytest
-from db import get_session
-from main import app
-from models import User, UserCreate
-import random
-import os
-
-os.environ["TESTING"] = "1"
-
-test_users = [
-    {"username": "alice", "password": "lemon2025"},
-    {"username": "bob", "password": "rocket88"},
-    {"username": "carol", "password": "panda321"},
-    {"username": "dave", "password": "stone444"},
-    {"username": "erin", "password": "maple999"},
-    {"username": "frank", "password": "cloud721"},
-    {"username": "grace", "password": "echo550"},
-    {"username": "heidi", "password": "sunset131"},
-    {"username": "ivan", "password": "pixel707"},
-    {"username": "judy", "password": "river303"},
-]
-
-
-@pytest.fixture(name="user")
-def random_user_fixture() -> dict:
-    return random.choice(test_users)
-
-
-@pytest.fixture(name="session")
-def session_fixture():
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        for payload in test_users:
-            user_in = UserCreate(**payload)
-            user = User.from_create(user_in)
-            session.add(user)
-            session.commit()
-        yield session
-
-
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
-    def get_session_override():
-        return session
-
-    app.dependency_overrides[get_session] = get_session_override
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
+from lemmatizer.main import app
 
 
 def test_create_user(client: TestClient):

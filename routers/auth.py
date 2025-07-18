@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import os
 from typing import Annotated, Literal
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlmodel import Session, select
@@ -94,6 +94,34 @@ async def get_current_user(
 
 async def get_current_active_user(
     current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    if not current_user.is_active:
+        raise credentials_exception
+    return current_user
+
+
+async def get_optional_user(
+    request: Request,
+    session: Session = Depends(get_session),
+) -> User | None:
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+
+    token = auth_header[len("Bearer ") :]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            return None
+        user = get_user(str(username), session)
+        return user
+    except Exception:
+        return None
+
+
+async def get_current_active_optional_user(
+    current_user: Annotated[User, Depends(get_optional_user)],
 ) -> User:
     if not current_user.is_active:
         raise credentials_exception

@@ -54,6 +54,12 @@ class Lemma(SQLModel, table=True):
     )
 
 
+class LemmaOut(SQLModel):
+    lemma: str
+    pos: str
+    language: str
+
+
 class UserLemma(SQLModel, table=True):  # optional but useful
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
