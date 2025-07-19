@@ -519,6 +519,7 @@ dependencies = [
     { name = "passlib", extra = ["bcrypt"] },
     { name = "pluggy" },
     { name = "preshed" },
+    { name = "ptw" },
     { name = "pydantic" },
     { name = "pydantic-core" },
     { name = "pygments" },
@@ -586,6 +587,7 @@ requires-dist = [
     { name = "passlib", extras = ["bcrypt"], specifier = ">=1.7.4" },
     { name = "pluggy", specifier = "==1.6.0" },
     { name = "preshed", specifier = "==3.0.10" },
+    { name = "ptw", specifier = ">=1.0.1" },
     { name = "pydantic", specifier = "==2.11.7" },
     { name = "pydantic-core", specifier = "==2.33.2" },
     { name = "pygments", specifier = "==2.19.2" },
@@ -949,6 +951,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c3/65/938f21f77227e8d398d46fb10b9d1b3467be859468ce8db138fc3d50589c/preshed-3.0.10-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:3e6728b2028bbe79565eb6cf676b5bae5ce1f9cc56e4bf99bb28ce576f88054d", size = 808593, upload-time = "2025-05-26T15:18:18.535Z" },
     { url = "https://files.pythonhosted.org/packages/6c/1c/2a3961fc88bc72300ff7e4ca54689bda90d2d77cc994167cc09a310480b6/preshed-3.0.10-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:c4ef96cb28bf5f08de9c070143113e168efccbb68fd4961e7d445f734c051a97", size = 837333, upload-time = "2025-05-26T15:18:19.937Z" },
     { url = "https://files.pythonhosted.org/packages/fa/8c/d3e30f80b2ef21f267f09f0b7d18995adccc928ede5b73ea3fe54e1303f4/preshed-3.0.10-cp313-cp313-win_amd64.whl", hash = "sha256:97e0e2edfd25a7dfba799b49b3c5cc248ad0318a76edd9d5fd2c82aa3d5c64ed", size = 115769, upload-time = "2025-05-26T15:18:21.842Z" },
+]
+
+[[package]]
+name = "ptw"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/d9/23daf185bc7ca7d6258121b51c02871bfdce6b3f65428db4e06e0f33357f/ptw-1.0.1.tar.gz", hash = "sha256:a21fe1d5482eceb2d0b6efec0c02efc17e6f68e6dbe4286f530226da2bf32286", size = 16123, upload-time = "2020-08-09T23:28:51.85Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e2/f1/e4e78522d6421112ebdc416a5d8665bab7bf3f719dbd5ed745c997bc6692/ptw-1.0.1-py3-none-any.whl", hash = "sha256:860ee1314a2894b44acaa84b98c481d58b855af5be85c25635073caf6eb33d1d", size = 15708, upload-time = "2020-08-09T23:28:50.549Z" },
 ]
 
 [[package]]

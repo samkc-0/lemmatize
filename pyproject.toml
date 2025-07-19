@@ -38,6 +38,7 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "pluggy==1.6.0",
     "preshed==3.0.10",
+    "ptw>=1.0.1",
     "pydantic==2.11.7",
     "pydantic-core==2.33.2",
     "pygments==2.19.2",

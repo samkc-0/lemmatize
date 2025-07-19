@@ -54,17 +54,22 @@ class Lemma(SQLModel, table=True):
     )
 
 
-class LemmaOut(SQLModel):
-    lemma: str
-    pos: str
-    language: str
+# used to manage users feeds
+# a UserLemma is tied to a source
+# and if a user switches sources, they will
+# get a feed of stories generated from that source.
+class Origin(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hash: str
 
 
 class UserLemma(SQLModel, table=True):  # optional but useful
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     lemma_id: int = Field(foreign_key="lemma.id")
+    origin_id: int = Field(foreign_key="origin.id")
     seen_count: int
+    learning: bool = Field(default=True)
 
 
 class Story(SQLModel, table=True):
