@@ -68,7 +68,7 @@ class UserLemma(SQLModel, table=True):  # optional but useful
     user_id: int = Field(foreign_key="user.id")
     lemma_id: int = Field(foreign_key="lemma.id")
     origin_id: int = Field(foreign_key="origin.id")
-    seen_count: int
+    seen_count: int = Field(default=0)
     learning: bool = Field(default=True)
 
 
@@ -81,3 +81,9 @@ class Story(SQLModel, table=True):
     )
     title: Optional[str]
     rating: Optional[int]
+
+
+class Input(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hash: str
+    origin_id: int = Field(foreign_key="origin.id")
