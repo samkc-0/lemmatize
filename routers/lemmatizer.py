@@ -1,11 +1,7 @@
-from fastapi import APIRouter, status, HTTPException, Depends
-from sqlmodel import Session, select
-from langdetect import detect, DetectorFactory
+from fastapi import APIRouter, status, HTTPException
+from langdetect import detect, detect_langs, DetectorFactory
 from pydantic import BaseModel
-from typing import Annotated
-from db import get_session
-from models import User, Lemma
-from .auth import get_optional_user
+from typing import Optional
 import spacy
 
 DetectorFactory.seed = 0  # for consistent results
@@ -15,6 +11,7 @@ IMPLEMETED_LANGUAGES = ["it"]
 
 class TextIn(BaseModel):
     text: str
+    language: Optional[str] = None
 
 
 class LemmaOut(BaseModel):
@@ -29,54 +26,40 @@ router = APIRouter()
 models = {"it": spacy.load("it_core_news_sm")}
 
 
-@router.post("/{language}")
-def lemmatize(
-    language: str,
+@router.post("/")
+async def lemmatize(
     input: TextIn,
-    session: Session = Depends(get_session),
-    current_user: Annotated[User | None, Depends(get_optional_user)] = None,
 ):
-    if language not in IMPLEMETED_LANGUAGES:
+    try:
+        detected_languages = [l.lang for l in detect_langs(input.text)]
+        most_likely_language = detected_languages[0]
+    except:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"language {language} not supported",
+            detail="unable to confirm input language",
+        )
+    if input.language is None:
+        input.language = most_likely_language
+    elif input.language not in detected_languages:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"specified input language is {input.language}, but only detected '[{','.join(detected_languages)}]'",
+        )
+    if input.language not in models.keys():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"language '{input.language}' not supported",
         )
 
     if len(input.text) > MAX_INPUT_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="Input text too long. Must not exceed 100 characters.",
+            detail=f"Input text too long. Must not exceed {MAX_INPUT_LENGTH} characters.",
         )
-    try:
-        lang = detect(input.text)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="unable to detect language"
-        )
-
-    if lang != language:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"input must be in {language} (detected: {lang})",
-        )
-    doc = models[language](input.text)
+    doc = models[input.language](input.text)
     lemmas_out = [
         LemmaOut(lemma=tok.lemma_, pos=tok.pos_, language=tok.lang_)
         for tok in doc
         if not tok.is_punct and not tok.is_space
     ]
-
-    if current_user:
-        for lemma in lemmas_out:
-            existing = session.exec(
-                select(Lemma).where(
-                    Lemma.lemma == lemma.lemma,
-                    Lemma.pos == lemma.pos,
-                    Lemma.language == lemma.language,
-                )
-            ).first()
-            if not existing:
-                session.add(Lemma(**lemma.model_dump()))
-        session.commit()
-
     return lemmas_out
