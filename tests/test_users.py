@@ -1,7 +1,7 @@
 from fastapi import status
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select, col
-from models import Lemma, UserLemma, Lexicon
+from models import Lemma, Word, Lexicon
 from routers.users import hash_lexicon, hash_user_input
 
 sample_input = {
@@ -11,21 +11,21 @@ sample_input = {
 
 
 expected_lemmas_from_sample_input = [
-    {"lemma": "ieri", "pos": "ADV", "language": "it"},
-    {"lemma": "sembrare", "pos": "VERB", "language": "it"},
-    {"lemma": "difficile", "pos": "ADJ", "language": "it"},
-    {"lemma": "correre", "pos": "VERB", "language": "it"},
-    {"lemma": "rapidamente", "pos": "ADV", "language": "it"},
-    {"lemma": "con", "pos": "ADP", "language": "it"},
-    {"lemma": "qualcosa", "pos": "PRON", "language": "it"},
-    {"lemma": "di", "pos": "ADP", "language": "it"},
-    {"lemma": "verde", "pos": "ADJ", "language": "it"},
-    {"lemma": "dentro", "pos": "ADP", "language": "it"},
-    {"lemma": "questo", "pos": "DET", "language": "it"},
-    {"lemma": "elegante", "pos": "ADJ", "language": "it"},
-    {"lemma": "spazio", "pos": "NOUN", "language": "it"},
-    {"lemma": "noi", "pos": "PRON", "language": "it"},
-    {"lemma": "riuscire", "pos": "VERB", "language": "it"},
+    {"text": "ieri", "pos": "ADV", "language": "it"},
+    {"text": "sembrare", "pos": "VERB", "language": "it"},
+    {"text": "difficile", "pos": "ADJ", "language": "it"},
+    {"text": "correre", "pos": "VERB", "language": "it"},
+    {"text": "rapidamente", "pos": "ADV", "language": "it"},
+    {"text": "con", "pos": "ADP", "language": "it"},
+    {"text": "qualcosa", "pos": "PRON", "language": "it"},
+    {"text": "di", "pos": "ADP", "language": "it"},
+    {"text": "verde", "pos": "ADJ", "language": "it"},
+    {"text": "dentro", "pos": "ADP", "language": "it"},
+    {"text": "questo", "pos": "DET", "language": "it"},
+    {"text": "elegante", "pos": "ADJ", "language": "it"},
+    {"text": "spazio", "pos": "NOUN", "language": "it"},
+    {"text": "noi", "pos": "PRON", "language": "it"},
+    {"text": "riuscire", "pos": "VERB", "language": "it"},
 ]
 
 
@@ -38,17 +38,17 @@ def test_lemmatize_authenticated_user(token: str, client: TestClient, session: S
     assert res.status_code == status.HTTP_200_OK
     data = res.json()
     assert len(data) > 0, "response data must not be empty"
-    lemmas_table = session.exec(select(Lemma.lemma)).all()
+    lemmas_table = session.exec(select(Lemma.text)).all()
     assert len(lemmas_table) > 0, "lemma table must not be empty"
-    user_lemmas = session.exec(
-        select(Lemma.lemma).join(UserLemma, col(UserLemma.lemma_id) == Lemma.id)
+    words = session.exec(
+        select(Lemma.text).join(Word, col(Word.lemma_id) == Lemma.id)
     ).all()
-    assert user_lemmas, "user lemmas table must not be empty"
+    assert words, "words table must not be empty"
     for lemma in expected_lemmas_from_sample_input:
-        assert lemma["lemma"] in lemmas_table
-        assert lemma["lemma"] in user_lemmas
+        assert lemma["text"] in lemmas_table
+        assert lemma["text"] in words
     assert data["new_lemmas_added"] > 0
-    assert data["user_lemmas_linked"] >= data["new_lemmas_added"]
+    assert data["words_linked"] >= data["new_lemmas_added"]
     assert data["reused_input"] == False
     assert data["reused_lexicon"] == False
 
@@ -65,7 +65,7 @@ def test_lemmas_persist_for_logged_in_user(
     for lemma in expected_lemmas_from_sample_input:
         found = session.exec(
             select(Lemma).where(
-                Lemma.lemma == lemma["lemma"],
+                Lemma.text == lemma["text"],
                 Lemma.pos == lemma["pos"],
                 Lemma.language == lemma["language"],
             )
@@ -82,9 +82,9 @@ def test_get_lemmas_for_logged_in_user(
     res = client.get("/me/lemmas", headers=headers)
     assert res.status_code == status.HTTP_200_OK
     data = res.json()
-    text_only = [lemma["lemma"] for lemma in data]
+    text_only = [lemma["text"] for lemma in data]
     for lemma in expected_lemmas_from_sample_input:
-        assert lemma["lemma"] in text_only
+        assert lemma["text"] in text_only
 
 
 def test_upload_with_same_lexicon_hash(

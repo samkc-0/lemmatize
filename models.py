@@ -45,15 +45,14 @@ class Says(SQLModel, table=True):
 
 class Lemma(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    lemma: str
+    text: str
     pos: str
     language: str
-    __table_args__ = (UniqueConstraint("lemma", "pos", "language"),)
-    stories: List["Story"] = Relationship(back_populates="lemmas", link_model=Says)
+    __table_args__ = (UniqueConstraint("text", "pos", "language"),)
 
 
 # used to manage users feeds
-# a UserLemma is tied to a source
+# a Word is tied to a source
 # and if a user switches sources, they will
 # get a feed of stories generated from that source.
 class Lexicon(SQLModel, table=True):
@@ -61,7 +60,7 @@ class Lexicon(SQLModel, table=True):
     hash: str
 
 
-class UserLemma(SQLModel, table=True):  # optional but useful
+class Word(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     lemma_id: int = Field(foreign_key="lemma.id")
@@ -74,19 +73,18 @@ class Story(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
     language: str
-    vocab_hash: str
-    lemmas: List["Lemma"] = Relationship(back_populates="stories", link_model=Says)
-    title: Optional[str]
-    rating: Optional[int]
+    lexicon_hash: str
+    title: Optional[str] = None
+    rating: Optional[int] = None
 
 
-class Reading(SQLModel, table=True):
+class Perusal(SQLModel, table=True):
     story_id: int = Field(foreign_key="story.id", primary_key=True)
     user_id: int = Field(foreign_key="user.id", primary_key=True)
     read: bool = Field(default=False)
 
 
-class Input(SQLModel, table=True):
+class Document(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     hash: str
     lexicon_id: int = Field(foreign_key="lexicon.id")

@@ -15,7 +15,7 @@ class TextIn(BaseModel):
 
 
 class LemmaOut(BaseModel):
-    lemma: str
+    text: str
     pos: str
     language: str
 
@@ -58,7 +58,7 @@ async def lemmatize(
         )
     doc = models[input.language](input.text)
     lemmas_out = [
-        LemmaOut(lemma=tok.lemma_, pos=tok.pos_, language=tok.lang_)
+        LemmaOut(text=tok.lemma_, pos=tok.pos_, language=tok.lang_)
         for tok in doc
         if not tok.is_punct and not tok.is_space
     ]

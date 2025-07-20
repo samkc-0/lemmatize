@@ -29,22 +29,22 @@ test_users = [
 ]
 
 lemmas = [
-    {"lemma": "avere", "pos": "AUX", "language": "it"},
-    {"lemma": "sempre", "pos": "ADV", "language": "it"},
-    {"lemma": "trovare", "pos": "VERB", "language": "it"},
-    {"lemma": "il", "pos": "DET", "language": "it"},
-    {"lemma": "racconto", "pos": "NOUN", "language": "it"},
-    {"lemma": "di", "pos": "ADP", "language": "it"},
-    {"lemma": "Calvino", "pos": "PROPN", "language": "it"},
-    {"lemma": "affascinanti", "pos": "ADJ", "language": "it"},
-    {"lemma": "ogni", "pos": "DET", "language": "it"},
-    {"lemma": "storia", "pos": "NOUN", "language": "it"},
-    {"lemma": "essere", "pos": "AUX", "language": "it"},
-    {"lemma": "uno", "pos": "DET", "language": "it"},
-    {"lemma": "piccolo", "pos": "ADJ", "language": "it"},
-    {"lemma": "universo", "pos": "NOUN", "language": "it"},
-    {"lemma": "di", "pos": "ADP", "language": "it"},
-    {"lemma": "possibilità", "pos": "NOUN", "language": "it"},
+    {"text": "avere", "pos": "AUX", "language": "it"},
+    {"text": "sempre", "pos": "ADV", "language": "it"},
+    {"text": "trovare", "pos": "VERB", "language": "it"},
+    {"text": "il", "pos": "DET", "language": "it"},
+    {"text": "racconto", "pos": "NOUN", "language": "it"},
+    {"text": "di", "pos": "ADP", "language": "it"},
+    {"text": "Calvino", "pos": "PROPN", "language": "it"},
+    {"text": "affascinanti", "pos": "ADJ", "language": "it"},
+    {"text": "ogni", "pos": "DET", "language": "it"},
+    {"text": "storia", "pos": "NOUN", "language": "it"},
+    {"text": "essere", "pos": "AUX", "language": "it"},
+    {"text": "uno", "pos": "DET", "language": "it"},
+    {"text": "piccolo", "pos": "ADJ", "language": "it"},
+    {"text": "universo", "pos": "NOUN", "language": "it"},
+    {"text": "di", "pos": "ADP", "language": "it"},
+    {"text": "possibilità", "pos": "NOUN", "language": "it"},
 ]
 
 

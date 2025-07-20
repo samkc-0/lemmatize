@@ -1,9 +1,5 @@
 from fastapi.testclient import TestClient
 from fastapi import status
-from sqlmodel import Session, select
-from models import Lemma
-from routers.lemmatizer import LemmaOut
-from lemmatizer.main import app
 
 
 def test_lemmatization(user_input: str, test_lemmas: list[dict], client: TestClient):
