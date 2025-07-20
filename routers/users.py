@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from typing import List, Optional
-from models import Lemma, User, UserLemma, UserRead, Origin, Input
+from models import Lemma, User, UserLemma, UserRead, Lexicon, Input
 from db import get_session
 from routers.auth import get_current_active_user
 from routers.lemmatizer import lemmatize, TextIn, LemmaOut
@@ -14,10 +14,10 @@ router = APIRouter()
 
 class UploadResponse(BaseModel):
     reused_input: bool
-    reused_origin: bool
+    reused_lexicon: bool
     new_lemmas_added: int
     user_lemmas_linked: int
-    origin_id: Optional[int]  # useful for debugging, linking, etc
+    lexicon_id: Optional[int]  # useful for debugging, linking, etc
 
 
 @router.get("/")
@@ -38,7 +38,7 @@ async def get_lemmas(
     return list(lemmas)
 
 
-def hash_lemma_list(lemmas: List[LemmaOut]) -> str:
+def hash_lexicon(lemmas: List[LemmaOut]) -> str:
     sorted_lemmas = sorted(lemmas, key=lambda l: (l.lemma, l.pos, l.language))
     serialized = "".join(f"{l.lemma}:{l.pos}:{l.language}" for l in sorted_lemmas)
     return hashlib.sha256(serialized.encode()).hexdigest()
@@ -67,39 +67,39 @@ async def save_text(
         select(Input).where(col(Input.hash) == text_hash)
     ).first()
     if existing_input:
-        origin = session.exec(
-            select(Origin).where(col(Origin.id) == existing_input.origin_id)
+        lexicon = session.exec(
+            select(Lexicon).where(col(Lexicon.id) == existing_input.lexicon_id)
         ).one()
-        lemmas_copied = copy_lemmas_to_user(session, origin, current_user)
+        lemmas_copied = copy_lemmas_to_user(session, lexicon, current_user)
         return UploadResponse(
             reused_input=True,
-            reused_origin=False,
+            reused_lexicon=False,
             new_lemmas_added=0,
             user_lemmas_linked=lemmas_copied,
-            origin_id=origin.id,
+            lexicon_id=lexicon.id,
         )
     # if someone has submitted a text with exactly the same vocabulary before,
     # copy the lemma list for the user
     lemmas_out = await lemmatize(text_in)
-    origin_hash = hash_lemma_list(lemmas_out)
-    existing_origin = session.exec(
-        select(Origin).where(Origin.hash == origin_hash)
+    lexicon_hash = hash_lexicon(lemmas_out)
+    existing_lexicon = session.exec(
+        select(Lexicon).where(Lexicon.hash == lexicon_hash)
     ).first()
-    if existing_origin:
-        lemmas_copied = copy_lemmas_to_user(session, existing_origin, current_user)
+    if existing_lexicon:
+        lemmas_copied = copy_lemmas_to_user(session, existing_lexicon, current_user)
         return UploadResponse(
             reused_input=False,
-            reused_origin=True,
+            reused_lexicon=True,
             new_lemmas_added=0,
             user_lemmas_linked=lemmas_copied,
-            origin_id=existing_origin.id,
+            lexicon_id=existing_lexicon.id,
         )
     # else, do the inserts manually
-    origin = Origin(hash=origin_hash)
-    session.add(origin)
+    lexicon = Lexicon(hash=lexicon_hash)
+    session.add(lexicon)
     session.commit()
-    session.refresh(origin)
-    input_ = Input(hash=text_hash, origin_id=origin.id)
+    session.refresh(lexicon)
+    input_ = Input(hash=text_hash, lexicon_id=lexicon.id)
     session.add(input_)
     session.commit()
     session.refresh(input_)
@@ -126,7 +126,9 @@ async def save_text(
         ).first()
         if not exists_for_user:
             user_lemma_in = UserLemma(
-                user_id=current_user.id, lemma_id=exists_in_db.id, origin_id=origin.id
+                user_id=current_user.id,
+                lemma_id=exists_in_db.id,
+                first_lexicon_id=lexicon.id,
             )
             session.add(user_lemma_in)
             new_lemmas_linked += 1
@@ -135,27 +137,29 @@ async def save_text(
 
     return UploadResponse(
         reused_input=False,
-        reused_origin=False,
+        reused_lexicon=False,
         new_lemmas_added=new_lemmas_in_db_count,
         user_lemmas_linked=new_lemmas_linked,
-        origin_id=origin.id,
+        lexicon_id=lexicon.id,
     )
 
 
-def copy_lemmas_to_user(session: Session, origin: Origin, user: User) -> int:
-    statement = select(UserLemma).where(col(UserLemma.origin_id) == origin.id)
+def copy_lemmas_to_user(session: Session, lexicon: Lexicon, user: User) -> int:
+    statement = select(UserLemma).where(col(UserLemma.first_lexicon_id) == lexicon.id)
     to_copy = session.exec(statement).all()
     lemmas_copied: int = 0
-    for userlemma in to_copy:
+    for being_copied in to_copy:
         existing = session.exec(
             select(UserLemma)
             .where(col(UserLemma.user_id) == user.id)
-            .where(col(UserLemma.lemma_id) == userlemma.id)
+            .where(col(UserLemma.lemma_id) == being_copied.id)
         )
         if existing:
             continue
         user_copy = UserLemma(
-            lemma_id=userlemma.lemma_id, origin_id=userlemma.origin_id, user_id=user.id
+            lemma_id=being_copied.lemma_id,
+            first_lexicon_id=being_copied.first_lexicon_id,
+            user_id=user.id,
         )
         session.add(user_copy)
         lemmas_copied += 1

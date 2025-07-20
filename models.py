@@ -38,7 +38,7 @@ class UserRead(SQLModel):
     username: str
 
 
-class StoryLemmaLink(SQLModel, table=True):
+class Says(SQLModel, table=True):
     story_id: int = Field(foreign_key="story.id", primary_key=True)
     lemma_id: int = Field(foreign_key="lemma.id", primary_key=True)
 
@@ -49,16 +49,14 @@ class Lemma(SQLModel, table=True):
     pos: str
     language: str
     __table_args__ = (UniqueConstraint("lemma", "pos", "language"),)
-    stories: List["Story"] = Relationship(
-        back_populates="lemmas", link_model=StoryLemmaLink
-    )
+    stories: List["Story"] = Relationship(back_populates="lemmas", link_model=Says)
 
 
 # used to manage users feeds
 # a UserLemma is tied to a source
 # and if a user switches sources, they will
 # get a feed of stories generated from that source.
-class Origin(SQLModel, table=True):
+class Lexicon(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     hash: str
 
@@ -67,7 +65,7 @@ class UserLemma(SQLModel, table=True):  # optional but useful
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     lemma_id: int = Field(foreign_key="lemma.id")
-    origin_id: int = Field(foreign_key="origin.id")
+    first_lexicon_id: int = Field(foreign_key="lexicon.id")
     seen_count: int = Field(default=0)
     learning: bool = Field(default=True)
 
@@ -76,14 +74,19 @@ class Story(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
     language: str
-    lemmas: List["Lemma"] = Relationship(
-        back_populates="stories", link_model=StoryLemmaLink
-    )
+    vocab_hash: str
+    lemmas: List["Lemma"] = Relationship(back_populates="stories", link_model=Says)
     title: Optional[str]
     rating: Optional[int]
+
+
+class Reading(SQLModel, table=True):
+    story_id: int = Field(foreign_key="story.id", primary_key=True)
+    user_id: int = Field(foreign_key="user.id", primary_key=True)
+    read: bool = Field(default=False)
 
 
 class Input(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     hash: str
-    origin_id: int = Field(foreign_key="origin.id")
+    lexicon_id: int = Field(foreign_key="lexicon.id")

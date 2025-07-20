@@ -48,5 +48,5 @@ def test_me_tampered_token(user: dict, client: TestClient):
     token = token_response.json()["access_token"]
     tampered_token = token + "tamper"
     headers = {"Authorization": f"Bearer {tampered_token}"}
-    response = client.get("/auth/me", headers=headers)
+    response = client.get("/me", headers=headers)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

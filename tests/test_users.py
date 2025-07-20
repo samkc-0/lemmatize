@@ -1,8 +1,8 @@
 from fastapi import status
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select, col
-from models import Lemma, UserLemma, Origin
-from routers.users import hash_lemma_list, hash_user_input
+from models import Lemma, UserLemma, Lexicon
+from routers.users import hash_lexicon, hash_user_input
 
 sample_input = {
     "text": "Ieri sembrava difficile correre rapidamente con qualcosa di verde dentro questo elegante spazio. Noi ci siamo riusciti comunque.",
@@ -50,7 +50,7 @@ def test_lemmatize_authenticated_user(token: str, client: TestClient, session: S
     assert data["new_lemmas_added"] > 0
     assert data["user_lemmas_linked"] >= data["new_lemmas_added"]
     assert data["reused_input"] == False
-    assert data["reused_origin"] == False
+    assert data["reused_lexicon"] == False
 
 
 def test_lemmas_persist_for_logged_in_user(
@@ -87,9 +87,11 @@ def test_get_lemmas_for_logged_in_user(
         assert lemma["lemma"] in text_only
 
 
-def test_upload_with_same_origin_hash(token: str, client: TestClient, session: Session):
+def test_upload_with_same_lexicon_hash(
+    token: str, client: TestClient, session: Session
+):
     headers = {"Authorization": f"Bearer {token}"}
-    # First upload to create origin
+    # First upload to create lexicon
     res = client.post("/me/upload", json=sample_input, headers=headers)
     assert res.status_code == status.HTTP_200_OK
     first_upload = res.json()
@@ -104,8 +106,8 @@ def test_upload_with_same_origin_hash(token: str, client: TestClient, session: S
     assert res.status_code == status.HTTP_200_OK
     second_upload = res.json()
 
-    assert second_upload["reused_origin"] == True
-    assert second_upload["origin_id"] == first_upload["origin_id"]
+    assert second_upload["reused_lexicon"] == True
+    assert second_upload["lexicon_id"] == first_upload["lexicon_id"]
     assert second_upload["new_lemmas_added"] == 0
 
 
@@ -122,5 +124,5 @@ def test_upload_with_same_input_hash(token: str, client: TestClient, session: Se
     second_upload = res.json()
 
     assert second_upload["reused_input"] == True
-    assert second_upload["origin_id"] == first_upload["origin_id"]
+    assert second_upload["lexicon_id"] == first_upload["lexicon_id"]
     assert second_upload["new_lemmas_added"] == 0
