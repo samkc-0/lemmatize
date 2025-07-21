@@ -6,28 +6,32 @@ import spacy
 
 DetectorFactory.seed = 0  # for consistent results
 
-IMPLEMETED_LANGUAGES = ["it"]
-
 
 class TextIn(BaseModel):
     text: str
     language: Optional[str] = None
 
 
-class LemmaOut(BaseModel):
+class HeadwordOut(BaseModel):
     text: str
-    pos: str
+    tag: str
     language: str
 
 
 MAX_INPUT_LENGTH = 140
 
 router = APIRouter()
-models = {"it": spacy.load("it_core_news_sm")}
+models = {
+    "it": {
+        "model": spacy.load("it_core_news_sm"),
+        "mapper": lambda t: HeadwordOut(text=t.lemma_, tag=t.pos_, language=t.lang_),
+    }
+}
+IMPLEMENTED_LANGUAGES = models.keys()
 
 
 @router.post("/")
-async def lemmatize(
+async def analyze_text(
     input: TextIn,
 ):
     try:
@@ -45,7 +49,7 @@ async def lemmatize(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"specified input language is {input.language}, but only detected '[{','.join(detected_languages)}]'",
         )
-    if input.language not in models.keys():
+    if input.language not in IMPLEMENTED_LANGUAGES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"language '{input.language}' not supported",
@@ -56,10 +60,15 @@ async def lemmatize(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"Input text too long. Must not exceed {MAX_INPUT_LENGTH} characters.",
         )
-    doc = models[input.language](input.text)
-    lemmas_out = [
-        LemmaOut(text=tok.lemma_, pos=tok.pos_, language=tok.lang_)
-        for tok in doc
-        if not tok.is_punct and not tok.is_space
+    nlp = models[input.language]
+    try:
+        doc = nlp["model"](input.text)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"error analyzing text: {e}",
+        )
+    headwords_out = [
+        nlp["mapper"](tok) for tok in doc if not tok.is_punct and not tok.is_space
     ]
-    return lemmas_out
+    return headwords_out

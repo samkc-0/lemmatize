@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import SQLModel, Session
 from sqlmodel.pool import StaticPool
 from db import get_session, create_engine
-from models import Lemma, User, UserCreate
+from models import Headword, User, UserCreate
 from lemmatizer.main import app
 import uuid
 
@@ -28,29 +28,29 @@ test_users = [
     {"username": "judy", "password": "river303"},
 ]
 
-lemmas = [
-    {"text": "avere", "pos": "AUX", "language": "it"},
-    {"text": "sempre", "pos": "ADV", "language": "it"},
-    {"text": "trovare", "pos": "VERB", "language": "it"},
-    {"text": "il", "pos": "DET", "language": "it"},
-    {"text": "racconto", "pos": "NOUN", "language": "it"},
-    {"text": "di", "pos": "ADP", "language": "it"},
-    {"text": "Calvino", "pos": "PROPN", "language": "it"},
-    {"text": "affascinanti", "pos": "ADJ", "language": "it"},
-    {"text": "ogni", "pos": "DET", "language": "it"},
-    {"text": "storia", "pos": "NOUN", "language": "it"},
-    {"text": "essere", "pos": "AUX", "language": "it"},
-    {"text": "uno", "pos": "DET", "language": "it"},
-    {"text": "piccolo", "pos": "ADJ", "language": "it"},
-    {"text": "universo", "pos": "NOUN", "language": "it"},
-    {"text": "di", "pos": "ADP", "language": "it"},
-    {"text": "possibilità", "pos": "NOUN", "language": "it"},
+headwords = [
+    {"text": "avere", "tag": "AUX", "language": "it"},
+    {"text": "sempre", "tag": "ADV", "language": "it"},
+    {"text": "trovare", "tag": "VERB", "language": "it"},
+    {"text": "il", "tag": "DET", "language": "it"},
+    {"text": "racconto", "tag": "NOUN", "language": "it"},
+    {"text": "di", "tag": "ADP", "language": "it"},
+    {"text": "Calvino", "tag": "PROPN", "language": "it"},
+    {"text": "affascinanti", "tag": "ADJ", "language": "it"},
+    {"text": "ogni", "tag": "DET", "language": "it"},
+    {"text": "storia", "tag": "NOUN", "language": "it"},
+    {"text": "essere", "tag": "AUX", "language": "it"},
+    {"text": "uno", "tag": "DET", "language": "it"},
+    {"text": "piccolo", "tag": "ADJ", "language": "it"},
+    {"text": "universo", "tag": "NOUN", "language": "it"},
+    {"text": "di", "tag": "ADP", "language": "it"},
+    {"text": "possibilità", "tag": "NOUN", "language": "it"},
 ]
 
 
-@pytest.fixture(scope="session", name="test_lemmas")
-def test_lemmas() -> list[dict]:
-    return lemmas
+@pytest.fixture(scope="session", name="test_headwords")
+def test_headwords() -> list[dict]:
+    return headwords
 
 
 @pytest.fixture(scope="session", name="user")
@@ -96,6 +96,8 @@ def token(client: TestClient) -> str:
     username = f"testuser-{uuid.uuid4().hex[:8]}"
     password = "pass123"
     client.post("/auth/register/", json={"username": username, "password": password})
-    res = client.post("/auth/token", data={"username": username, "password": password})
-    assert res.status_code == 200
-    return res.json()["access_token"]
+    response = client.post(
+        "/auth/token", data={"username": username, "password": password}
+    )
+    assert response.status_code == 200
+    return response.json()["access_token"]

@@ -25,7 +25,7 @@ def test_user_session(user: dict, client: TestClient):
     token_data = token_response.json()
     token = token_data["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
-    me_response = client.get("/me", headers=headers)
+    me_response = client.get("/auth/me", headers=headers)
     assert me_response.status_code == status.HTTP_200_OK
     me_data = me_response.json()
     assert me_data["username"] == user["username"]
@@ -33,12 +33,12 @@ def test_user_session(user: dict, client: TestClient):
 
 def test_me_invalid_token(client: TestClient):
     headers = {"Authorization": "Bearer invalidtoken"}
-    response = client.get("/me", headers=headers)
+    response = client.get("/auth/me", headers=headers)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_me_no_token(client: TestClient):
-    response = client.get("/me")
+    response = client.get("/auth/me")
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -48,5 +48,5 @@ def test_me_tampered_token(user: dict, client: TestClient):
     token = token_response.json()["access_token"]
     tampered_token = token + "tamper"
     headers = {"Authorization": f"Bearer {tampered_token}"}
-    response = client.get("/me", headers=headers)
+    response = client.get("/auth/me", headers=headers)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

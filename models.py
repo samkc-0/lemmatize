@@ -40,15 +40,15 @@ class UserRead(SQLModel):
 
 class Says(SQLModel, table=True):
     story_id: int = Field(foreign_key="story.id", primary_key=True)
-    lemma_id: int = Field(foreign_key="lemma.id", primary_key=True)
+    headword_id: int = Field(foreign_key="headword.id", primary_key=True)
 
 
-class Lemma(SQLModel, table=True):
+class Headword(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
-    pos: str
+    tag: str
     language: str
-    __table_args__ = (UniqueConstraint("text", "pos", "language"),)
+    __table_args__ = (UniqueConstraint("text", "tag", "language"),)
 
 
 # used to manage users feeds
@@ -63,7 +63,7 @@ class Lexicon(SQLModel, table=True):
 class Word(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    lemma_id: int = Field(foreign_key="lemma.id")
+    headword_id: int = Field(foreign_key="headword.id")
     first_lexicon_id: int = Field(foreign_key="lexicon.id")
     seen_count: int = Field(default=0)
     learning: bool = Field(default=True)

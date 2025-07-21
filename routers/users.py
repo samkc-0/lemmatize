@@ -1,48 +1,23 @@
 from fastapi import APIRouter, Depends
 from typing import List, Optional
-from models import Lemma, User, Word, UserRead, Lexicon, Document
+from models import Headword, User, Word, UserRead, Lexicon, Document
 from db import get_session
 from routers.auth import get_current_active_user
-from routers.lemmatizer import lemmatize, TextIn, LemmaOut
+from routers import lexicography
+from routers.lexicography import TextIn, HeadwordOut
 from sqlmodel import Session, col, select
 import hashlib
 import re
 from pydantic import BaseModel
 
-router = APIRouter()
 
-
-class UploadResponse(BaseModel):
-    reused_input: bool
-    reused_lexicon: bool
-    new_lemmas_added: int
-    words_linked: int
-    lexicon_id: Optional[int]  # useful for debugging, linking, etc
-
-
-@router.get("/")
-async def read_users_me(
-    current_user: User = Depends(get_current_active_user),
-) -> UserRead:
-    user_read = UserRead(**current_user.model_dump())
-    return user_read
-
-
-@router.get("/lemmas")
-async def get_lemmas(
-    session: Session = Depends(get_session), user=Depends(get_current_active_user)
-) -> List[Lemma]:
-    lemmas = session.exec(select(Lemma).join(Word, Word.user_id == user.id)).all()
-    return list(lemmas)
-
-
-def hash_lexicon(lemmas: List[LemmaOut]) -> str:
-    sorted_lemmas = sorted(lemmas, key=lambda l: (l.text, l.pos, l.language))
-    serialized = "".join(f"{l.text}:{l.pos}:{l.language}" for l in sorted_lemmas)
+def hash_lexicon(headwords: List[HeadwordOut]) -> str:
+    alphabetized = sorted(headwords, key=lambda l: (l.text, l.tag, l.language))
+    serialized = "".join(f"{l.text}:{l.tag}:{l.language}" for l in alphabetized)
     return hashlib.sha256(serialized.encode()).hexdigest()
 
 
-def hash_user_input(text: str) -> str:
+def hash_document(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
@@ -53,16 +28,35 @@ def normalize_text(text: str) -> str:
     return text
 
 
+router = APIRouter()
+
+
+class UploadResponse(BaseModel):
+    reused_input: bool
+    reused_lexicon: bool
+    new_headwords_added: int
+    words_linked: int
+    lexicon_id: Optional[int]  # useful for debugging, linking, etc
+
+
+@router.get("/words")
+async def get_headwords(
+    session: Session = Depends(get_session), user=Depends(get_current_active_user)
+) -> List[Headword]:
+    words = session.exec(select(Headword).join(Word, Word.user_id == user.id)).all()
+    return list(words)
+
+
 @router.post("/upload")
 async def save_text(
     text_in: TextIn,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
 ) -> UploadResponse:
-    # if someone has submitted this text before, just copy the lemma list for the user
-    text_hash = hash_user_input(normalize_text(text_in.text))
+    # if someone has submitted this text before, just copy the word list for the user
+    document_hash = hash_document(normalize_text(text_in.text))
     existing_input = session.exec(
-        select(Document).where(col(Document.hash) == text_hash)
+        select(Document).where(col(Document.hash) == document_hash)
     ).first()
     if existing_input:
         lexicon = session.exec(
@@ -72,24 +66,24 @@ async def save_text(
         return UploadResponse(
             reused_input=True,
             reused_lexicon=False,
-            new_lemmas_added=0,
+            new_headwords_added=0,
             words_linked=words_linked,
             lexicon_id=lexicon.id,
         )
     # if someone has submitted a text with exactly the same vocabulary before,
-    # copy the lemma list for the user
-    lemmas_out = await lemmatize(text_in)
-    lexicon_hash = hash_lexicon(lemmas_out)
+    # copy the word list for the user
+    headwords_out = await lexicography.analyze_text(text_in)
+    lexicon_hash = hash_lexicon(headwords_out)
     existing_lexicon = session.exec(
         select(Lexicon).where(Lexicon.hash == lexicon_hash)
     ).first()
     if existing_lexicon:
-        lemmas_copied = copy_words_to_user(session, existing_lexicon, current_user)
+        words_copied = copy_words_to_user(session, existing_lexicon, current_user)
         return UploadResponse(
             reused_input=False,
             reused_lexicon=True,
-            new_lemmas_added=0,
-            words_linked=lemmas_copied,
+            new_headwords_added=0,
+            words_linked=words_copied,
             lexicon_id=existing_lexicon.id,
         )
     # else, do the inserts manually
@@ -97,35 +91,35 @@ async def save_text(
     session.add(lexicon)
     session.commit()
     session.refresh(lexicon)
-    input_ = Document(hash=text_hash, lexicon_id=lexicon.id)
+    input_ = Document(hash=document_hash, lexicon_id=lexicon.id)
     session.add(input_)
     session.commit()
     session.refresh(input_)
-    new_lemmas_in_db_count = 0
+    new_headwords_in_db_count = 0
     new_words_linked = 0
-    for lemma in lemmas_out:
+    for headword in headwords_out:
         exists_in_db = session.exec(
-            select(Lemma).where(
-                Lemma.text == lemma.text,
-                Lemma.pos == lemma.pos,
-                Lemma.language == lemma.language,
+            select(Headword).where(
+                Headword.text == headword.text,
+                Headword.tag == headword.tag,
+                Headword.language == headword.language,
             )
         ).first()
         if not exists_in_db:
-            exists_in_db = Lemma(**lemma.model_dump())
+            exists_in_db = Headword(**headword.model_dump())
             session.add(exists_in_db)
-            new_lemmas_in_db_count += 1
+            new_headwords_in_db_count += 1
             session.commit()
             session.refresh(exists_in_db)
         exists_for_user = session.exec(
             select(Word)
             .where(Word.user_id == current_user.id)
-            .where(Word.lemma_id == exists_in_db.id)
+            .where(Word.headword_id == exists_in_db.id)
         ).first()
         if not exists_for_user:
             word_in = Word(
                 user_id=current_user.id,
-                lemma_id=exists_in_db.id,
+                headword_id=exists_in_db.id,
                 first_lexicon_id=lexicon.id,
             )
             session.add(word_in)
@@ -136,7 +130,7 @@ async def save_text(
     return UploadResponse(
         reused_input=False,
         reused_lexicon=False,
-        new_lemmas_added=new_lemmas_in_db_count,
+        new_headwords_added=new_headwords_in_db_count,
         words_linked=new_words_linked,
         lexicon_id=lexicon.id,
     )
@@ -150,12 +144,12 @@ def copy_words_to_user(session: Session, lexicon: Lexicon, user: User) -> int:
         existing = session.exec(
             select(Word)
             .where(col(Word.user_id) == user.id)
-            .where(col(Word.lemma_id) == being_copied.id)
+            .where(col(Word.headword_id) == being_copied.id)
         )
         if existing:
             continue
         user_copy = Word(
-            lemma_id=being_copied.lemma_id,
+            headword_id=being_copied.headword_id,
             first_lexicon_id=being_copied.first_lexicon_id,
             user_id=user.id,
         )

@@ -159,3 +159,11 @@ async def login_for_access_token(
         data={"sub": user.username}, expiry=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
+
+
+@router.get("/me")
+async def read_users_me(
+    current_user: User = Depends(get_current_active_user),
+) -> UserRead:
+    user_read = UserRead(**current_user.model_dump())
+    return user_read
