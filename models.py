@@ -78,7 +78,7 @@ class Story(SQLModel, table=True):
     rating: Optional[int] = None
 
 
-class Perusal(SQLModel, table=True):
+class Reading(SQLModel, table=True):
     story_id: int = Field(foreign_key="story.id", primary_key=True)
     user_id: int = Field(foreign_key="user.id", primary_key=True)
     read: bool = Field(default=False)
