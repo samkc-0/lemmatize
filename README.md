@@ -27,8 +27,8 @@ analyze short input and return tagged tokens.
 ### `POST /stream`
 
 same as above but returns newline-delimited JSON (ndjson), line by line.
-•	useful for long multiline text inputs or streaming clients.
-•	content-type: application/x-ndjson
+- useful for long multiline text inputs or streaming clients.
+- content-type: application/x-ndjson
 
 ## features
 •	auto language detection (via langdetect)
