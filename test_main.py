@@ -103,7 +103,7 @@ def test_streamed_analysis(
     headwords: list[dict], user_input: TextIn, client: TestClient
 ):
     response = client.post(
-        "/lexicography/stream",
+        "/lexicography/long",
         json=user_input.model_dump(),
     )
     assert response.status_code == status.HTTP_200_OK

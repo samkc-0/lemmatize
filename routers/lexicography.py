@@ -86,7 +86,7 @@ def validate_language(input: TextIn) -> str:
 
 
 @router.post("/")
-async def analyze_text(
+async def analyze_short_text(
     input: TextIn,
 ):
     lang: str = validate_language(input)
@@ -111,8 +111,8 @@ async def analyze_text(
     return headwords_out
 
 
-@router.post("/stream")
-async def analyze_text_stream(
+@router.post("/long")
+async def analyze_long_text(
     input: TextIn,
 ):
     lang: str = validate_language(input)
