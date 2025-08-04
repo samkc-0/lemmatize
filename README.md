@@ -1,7 +1,10 @@
 # Headword Tagger API
 
-<img width="256" height="256" alt="image" src="https://github.com/user-attachments/assets/f396e6e7-f231-438b-b5fe-150fcde7b4ce" />
+<p align="center">
+  <img width="256" height="256" alt="image" src="https://github.com/user-attachments/assets/f396e6e7-f231-438b-b5fe-150fcde7b4ce" />
+</p>
 
+<br/>
 fastapi-based microservice for tokenizing and tagging short texts using spaCy, with optional language detection and streaming output.
 
 ## endpoints
