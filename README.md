@@ -45,5 +45,5 @@ same as above but returns newline-delimited JSON (ndjson), line by line.
 language detection is probabilistic; you can override it by passing "language" explicitly.
 
 
-![lewis-fungi-25](https://github.com/user-attachments/assets/a063278e-6c09-4f19-aa73-baf9eeebca4f)
+![lewis-fungi-25](https://github.com/user-attachments/assets/a063278e-6c09-4f19-aa73-baf9eeebca4f =x300)
 
