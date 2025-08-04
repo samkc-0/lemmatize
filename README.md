@@ -24,11 +24,11 @@ analyze short input and return tagged tokens.
 ]
 ```
 
-### POST /stream
+### `POST /stream`
 
 same as above but returns newline-delimited JSON (ndjson), line by line.
-	•	useful for long multiline text inputs or streaming clients.
-	•	content-type: application/x-ndjson
+•	useful for long multiline text inputs or streaming clients.
+•	content-type: application/x-ndjson
 
 ## features
 •	auto language detection (via langdetect)
@@ -37,9 +37,9 @@ same as above but returns newline-delimited JSON (ndjson), line by line.
 •	handles input up to 140 chars max
 
 ## errors
-	•	400: invalid or unsupported language
-	•	413: input too long
-	•	500: spaCy processing error
+•	`400`: invalid or unsupported language
+•	`413`: input too long
+•	`500`: spaCy processing error
 
 ## note
 language detection is probabilistic; you can override it by passing "language" explicitly.
