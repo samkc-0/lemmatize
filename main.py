@@ -12,5 +12,5 @@ templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/")
-def serve_index():
-    return FileResponse("static/index.html")
+def serve_demo():
+    return FileResponse("static/demo.html")
