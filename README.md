@@ -1,5 +1,7 @@
 # Headword Tagger API
 
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/f396e6e7-f231-438b-b5fe-150fcde7b4ce" />
+
 fastapi-based microservice for tokenizing and tagging short texts using spaCy, with optional language detection and streaming output.
 
 ## endpoints
@@ -31,15 +33,15 @@ same as above but returns newline-delimited JSON (ndjson), line by line.
 - content-type: application/x-ndjson
 
 ## features
-•	auto language detection (via langdetect)
-•	supports italian (it) and spanish (es)
-•	fast tagging via spaCy
-•	handles input up to 140 chars max
+- auto language detection (via langdetect)
+- supports italian (it) and spanish (es) (more later)
+- fast tagging via spaCy
+- handles input up to 140 chars max
 
 ## errors
-•	`400`: invalid or unsupported language
-•	`413`: input too long
-•	`500`: spaCy processing error
+- `400`: invalid or unsupported language
+- `413`: input too long
+- `500`: spaCy processing error
 
 ## note
 language detection is probabilistic; you can override it by passing "language" explicitly.
