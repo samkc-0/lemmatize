@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, status
-from routers import lemmatizer
+from fastapi import FastAPI
+from routers import lexicography
 
 app = FastAPI()
-app.include_router(lemmatizer.router, prefix="/lemmatize")
+app.include_router(lexicography.router, prefix="/lexicography")

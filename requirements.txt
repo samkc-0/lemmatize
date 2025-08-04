@@ -16,6 +16,7 @@ httpx==0.28.1
 idna==3.10
 iniconfig==2.1.0
 it_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/it_core_news_sm-3.8.0/it_core_news_sm-3.8.0-py3-none-any.whl
+es_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/es_core_news_md-3.8.0/es_core_news_md-3.8.0-py3-none-any.whl
 Jinja2==3.1.6
 langcodes==3.5.0
 langdetect==1.0.9
