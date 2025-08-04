@@ -2,16 +2,48 @@
 
 fastapi-based microservice for tokenizing and tagging short texts using spaCy, with optional language detection and streaming output.
 
----
-
-## 🚀 endpoints
+## endpoints
 
 ### `POST /`
 analyze short input and return tagged tokens.
 
-- **body**:
-  ```json
-  {
-    "text": "ciao, come stai?",
-    "language": "it" // optional
-  }
+**body**:
+```json
+{
+  "text": "ciao, come stai?",
+  "language": "it"
+}
+```
+
+**response:**
+```json
+[
+  { "text": "ciao", "tag": "INTJ" },
+  { "text": "come", "tag": "ADV" },
+  { "text": "stai", "tag": "VERB" }
+]
+```
+
+### POST /stream
+
+same as above but returns newline-delimited JSON (ndjson), line by line.
+	•	useful for long multiline text inputs or streaming clients.
+	•	content-type: application/x-ndjson
+
+## features
+•	auto language detection (via langdetect)
+•	supports italian (it) and spanish (es)
+•	fast tagging via spaCy
+•	handles input up to 140 chars max
+
+## errors
+	•	400: invalid or unsupported language
+	•	413: input too long
+	•	500: spaCy processing error
+
+## note
+language detection is probabilistic; you can override it by passing "language" explicitly.
+
+
+![lewis-fungi-25](https://github.com/user-attachments/assets/a063278e-6c09-4f19-aa73-baf9eeebca4f)
+
